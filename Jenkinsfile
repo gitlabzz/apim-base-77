@@ -25,7 +25,7 @@ node {
         if (pullRequest) {
             echo "Checking out pull request '${branchName}'"
             try {
-                git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-aga-77.git'
+                git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-base-77.git'
             } catch (exception) {
                 sh '''
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
@@ -38,7 +38,7 @@ node {
 
         } else {
             echo "Checking out branch '${BRANCH_NAME}'"
-            git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-aga-77.git'
+            git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-base-77.git'
             echo "Check out for '${BRANCH_NAME}' is successfully completed!"
         }
     }
@@ -87,7 +87,7 @@ node {
         }
     }
 
-    /*stage('Create Latest Tag') {
+    stage('Create Latest Tag') {
         sh "docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
         echo "Executed 'docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
         echo "Tag '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' created from '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
@@ -110,7 +110,7 @@ node {
     stage('Docker Logout') {
         sh 'docker logout'
         echo "Executed 'docker logout'"
-    }*/
+    }
 
 
 }
