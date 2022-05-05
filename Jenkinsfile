@@ -87,7 +87,7 @@ node {
         }
     }
 
-    /*stage('Create Latest Tag') {
+    stage('Create Latest Tag') {
         sh "docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
         echo "Executed 'docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
         echo "Tag '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' created from '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
@@ -110,7 +110,7 @@ node {
     stage('Docker Logout') {
         sh 'docker logout'
         echo "Executed 'docker logout'"
-    }*/
+    }
 
 
 }
