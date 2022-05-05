@@ -25,7 +25,7 @@ node {
         if (pullRequest) {
             echo "Checking out pull request '${branchName}'"
             try {
-                git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-base-77.git'
+                git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://bctk8gl01.ad01.bcthk.com/vv0053/apim-base-77.git'
             } catch (exception) {
                 sh '''
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
@@ -38,7 +38,7 @@ node {
 
         } else {
             echo "Checking out branch '${BRANCH_NAME}'"
-            git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-base-77.git'
+            git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://bctk8gl01.ad01.bcthk.com/vv0053/apim-base-77.git'
             echo "Check out for '${BRANCH_NAME}' is successfully completed!"
         }
     }
@@ -65,7 +65,7 @@ node {
     }
 
     stage('Build API Manger Image') {
-        withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
+        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
 
             targetEnvironment = BRANCH_NAME.toLowerCase()
             echo "Building for branch: '${BRANCH_NAME}'"
@@ -94,14 +94,14 @@ node {
     }
 
     stage('Push Release Tag') {
-        withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
+        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
             sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
             echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
         }
     }
 
     stage('Push Latest Tag') {
-        withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
+        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
             sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
             echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
         }
