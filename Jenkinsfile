@@ -4,9 +4,9 @@ node {
     def branchName
     def pullRequest
     def targetEnvironment
-    def dateTimeSignature
     def imageTag
     def imageRepository
+    def imageName = "/apim/apim_base"
 
     stage('Initialize') {
         branchName = BRANCH_NAME
@@ -66,19 +66,19 @@ node {
             }
 
             if (targetEnvironment.equalsIgnoreCase('dev')) {
-                imageTag += "_SNAPSHOT"
+                imageTag = release + "_SNAPSHOT"
                 imageRepository = "_snapshot"
             } else {
-                imageTag += "_RELEASE"
+                imageTag += release + "_RELEASE"
                 imageRepository = "_release"
             }
             sh "./build_base_image.sh ${release} ${env.HARBOR_FQDN} ${imageRepository}"
-            echo "Build Completed for branch: '${targetEnvironment}' Image Created: ${release}_${dateTimeSignature} Using Release: ${release}"
+            echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${imageTag} Using Release: ${imageName}${imageRepository}"
         }
     }
 
-    stage('Create Latest Tag') {
-        sh "docker tag ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag} ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest"
+    /*stage('Create Latest Tag') {
+        sh "docker tag k${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag} ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest"
         echo "Executed 'docker tag ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag} ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest'"
         echo "Tag '${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest' created from '${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag}'"
     }
@@ -95,7 +95,7 @@ node {
             sh "docker push ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest"
             echo "Executed 'docker push ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest'"
         }
-    }
+    }*/
 
     stage('Docker Logout') {
         sh 'docker logout'
