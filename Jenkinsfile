@@ -1,4 +1,4 @@
-node {
+node('APIM-Python-Docker') {
     def release = '7_7_20220228'
     def nonProdEnvs = ['dev', 'sit']
     def branchName
