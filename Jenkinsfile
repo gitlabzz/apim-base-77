@@ -65,7 +65,7 @@ node {
     }
 
     stage('Build API Manger Image') {
-        withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
+        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
 
             targetEnvironment = BRANCH_NAME.toLowerCase()
             echo "Building for branch: '${BRANCH_NAME}'"
@@ -94,14 +94,14 @@ node {
     }
 
     stage('Push Release Tag') {
-        withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
+        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
             sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
             echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
         }
     }
 
     stage('Push Latest Tag') {
-        withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
+        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
             sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
             echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
         }
