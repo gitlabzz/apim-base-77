@@ -4,6 +4,7 @@ node {
     def branchName
     def pullRequest
     def targetEnvironment
+    def dateTimeSignature
     def imageTag
     def imageRepository
     def imageName = "/apim/apim_base"
@@ -24,7 +25,7 @@ node {
         if (pullRequest) {
             echo "Checking out pull request '${branchName}'"
             try {
-                git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-base-77.git'
+                git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-aga-77.git'
             } catch (exception) {
                 sh '''
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
@@ -37,9 +38,18 @@ node {
 
         } else {
             echo "Checking out branch '${BRANCH_NAME}'"
-            git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-base-77.git'
+            git branch: '${BRANCH_NAME}', credentialsId: 'GITHUB_PERSONAL_ACCESS_TOKEN', url: 'https://github.com/gitlabzz/apim-aga-77.git'
             echo "Check out for '${BRANCH_NAME}' is successfully completed!"
         }
+    }
+
+    stage('Generate Image Tag') {
+        dateTimeSignature = new java.text.SimpleDateFormat("YYYYMMdd").format(new Date())
+        echo "The datetime signature for build is: ${dateTimeSignature}"
+        dateTimeSignature += "_${env.BUILD_NUMBER}"
+        echo "The datetime signature along with build number is: ${dateTimeSignature}"
+        imageTag = "${release}_${dateTimeSignature}"
+        echo "The Image tag is going to be: ${imageTag}"
     }
 
     stage('Remove Existing Images') {
@@ -54,7 +64,7 @@ node {
         echo "Cleared existing and dangling images, ready for build."
     }
 
-    stage('Build Base Image') {
+    stage('Build API Manger Image') {
         withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
 
             targetEnvironment = BRANCH_NAME.toLowerCase()
@@ -66,41 +76,41 @@ node {
             }
 
             if (targetEnvironment.equalsIgnoreCase('dev')) {
-                imageTag = release + "_SNAPSHOT"
+                imageTag += "_SNAPSHOT"
                 imageRepository = "_snapshot"
             } else {
-                imageTag += release + "_RELEASE"
+                imageTag += "_RELEASE"
                 imageRepository = "_release"
             }
-            sh "./build_base_image.sh ${release} ${env.HARBOR_FQDN} ${imageRepository}"
-            echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${imageTag} Using Release: ${imageName}${imageRepository}"
+            sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
+            echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
     }
 
     /*stage('Create Latest Tag') {
-        sh "docker tag k${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag} ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest"
-        echo "Executed 'docker tag ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag} ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest'"
-        echo "Tag '${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest' created from '${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag}'"
+        sh "docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
+        echo "Executed 'docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+        echo "Tag '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' created from '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
     }
 
     stage('Push Release Tag') {
         withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
-            sh "docker push ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag}"
-            echo "Executed 'docker push ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:${imageTag}'"
+            sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
+            echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
         }
     }
 
     stage('Push Latest Tag') {
         withDockerRegistry(credentialsId: 'HARBOR.CREDENTAILS', url: "${env.HARBOR_URL}") {
-            sh "docker push ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest"
-            echo "Executed 'docker push ${env.HARBOR_FQDN}/apim/apim_base${imageRepository}:latest'"
+            sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
+            echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
         }
-    }*/
+    }
 
     stage('Docker Logout') {
         sh 'docker logout'
         echo "Executed 'docker logout'"
-    }
+    }*/
 
 
 }
