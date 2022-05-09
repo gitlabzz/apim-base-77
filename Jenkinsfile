@@ -83,9 +83,9 @@ node('APIM-Python-Docker') {
                 imageTag += "_RELEASE"
                 imageRepository = "_release"
             }
-            def statusCode = sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
+            def statusCode = sh script: "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}", returnStatus: true
 
-            echo "statusCode::::::::::::; ${statusCode}"
+            echo "statusCode::::::::::::: ${statusCode}"
 
             if (statusCode == 0) {
                 approvalStatus = input message: "Build is completed successfully for ${targetEnvironment}, Please approve to push the image to Harbor Registry.", ok: 'approve'
