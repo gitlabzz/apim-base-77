@@ -82,7 +82,8 @@ node('APIM-Python-Docker') {
                 imageTag += "_RELEASE"
                 imageRepository = "_release"
             }
-            sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
+            def statusCode = sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
+            echo "${statusCode ? 'build_base_image.sh completed successfully' : 'build_base_image.sh failed'}"
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
     }
