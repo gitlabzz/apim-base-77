@@ -88,12 +88,12 @@ node('APIM-Python-Docker') {
             echo "statusCode::::::::::::: ${statusCode}"
 
             if (statusCode == 0) {
-                approvalStatus = input message: "Build is completed successfully for ${targetEnvironment}, Please approve to push the image to Harbor Registry.", ok: 'approve'
+                approvalStatus = input message: 'Please approve to push', parameters: [string(defaultValue: '', description: '', name: "Please type 'approve' or 'decline'")]
             }
 
             echo "approvalStatus::::::::::::: ${approvalStatus}"
 
-            echo "Push is ${approvalStatus ?: 'not'} approved for ${targetEnvironment}"
+            echo "Push is ${approvalStatus} for ${targetEnvironment}"
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
     }
