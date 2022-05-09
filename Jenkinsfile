@@ -8,7 +8,7 @@ node('APIM-Python-Docker') {
     def imageTag
     def imageRepository
     def imageName = "/apim/apim_base"
-    def result
+    def approvalStatus
 
     stage('Initialize') {
         branchName = BRANCH_NAME
@@ -85,10 +85,13 @@ node('APIM-Python-Docker') {
             }
             def statusCode = sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
 
-            if (statusCode == 0 && !nonProdEnvs.contains(targetEnvironment)) {
-                result = input message: "Build is completed successfully for ${targetEnvironment}, Please approve to push the image to Harbor Registry.", ok: 'approve'
+            if (statusCode == 0) {
+                approvalStatus = input message: "Build is completed successfully for ${targetEnvironment}, Please approve to push the image to Harbor Registry.", ok: 'approve'
             }
-            echo "Push is ${result ?: 'not'} approved"
+
+            echo "approvalStatus::::::::::::: ${approvalStatus}"
+
+            echo "Push is ${approvalStatus ?: 'not'} approved for ${targetEnvironment}"
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
     }
