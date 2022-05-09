@@ -83,18 +83,19 @@ node('APIM-Python-Docker') {
                 imageTag += "_RELEASE"
                 imageRepository = "_release"
             }
-            def statusCode = sh script: "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}", returnStatus: true
-
-            echo "statusCode::::::::::::: ${statusCode}"
-
-            if (statusCode == 0) {
-                approvalStatus = input message: 'Please approve to push', parameters: [string(defaultValue: '', description: '', name: "Please type 'approve' or 'decline'")]
-            }
-
-            echo "approvalStatus::::::::::::: ${approvalStatus}"
-
-            echo "Push is ${approvalStatus} for ${targetEnvironment}"
+            sh script: "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}", returnStatus: true
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
+        }
+    }
+
+    stage('Approve/ Decline Image Push') {
+        if (!nonProdEnvs.contains(targetEnvironment)) {
+            def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'], description: 'Approval Status')]
+            echo "approvalStatusInput :::::::::: ${approvalStatusInput}"
+            approvalStatus = approvalStatusInput.equalsIgnoreCase('Approved') ? true : false
+            echo "approvalStatus :::: ${approvalStatus}"
+        } else {
+            echo "Approval not required for '${nonProdEnvs}' environment"
         }
     }
 
