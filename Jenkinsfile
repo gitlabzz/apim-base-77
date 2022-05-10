@@ -26,7 +26,7 @@ node('APIM-Python-Docker') {
         if (pullRequest) {
             echo "Checking out pull request '${branchName}'"
             try {
-                git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://github.com/gitlabzz//apim-base-77.git'
+                git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://bctk8gl01.ad01.bcthk.com/vv0053/apim-base-77.git'
             } catch (exception) {
                 sh '''
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
@@ -39,7 +39,7 @@ node('APIM-Python-Docker') {
 
         } else {
             echo "Checking out branch '${BRANCH_NAME}'"
-            git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://github.com/gitlabzz//apim-base-77.git'
+            git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://bctk8gl01.ad01.bcthk.com/vv0053/apim-base-77.git'
             echo "Check out for '${BRANCH_NAME}' is successfully completed!"
         }
     }
