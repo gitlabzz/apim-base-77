@@ -91,11 +91,11 @@ node('APIM-Python-Docker') {
     stage('Approve/ Decline Image Push') {
         if (!nonProdEnvs.contains(targetEnvironment)) {
             def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'], description: 'Approval Status')]
-            echo "approvalStatusInput :::::::::: ${approvalStatusInput}"
+            echo "approvalStatusInput: ${approvalStatusInput}"
             approvalStatus = approvalStatusInput.equalsIgnoreCase('Approved') ? true : false
-            echo "approvalStatus :::: ${approvalStatus}"
+            echo "approvalStatus: ${approvalStatus}"
         } else {
-            echo "Approval not required for '${nonProdEnvs}' environment"
+            echo "Approval not required for '${nonProdEnvs}' environment, this build is for '${targetEnvironment}'"
         }
     }
 
@@ -106,16 +106,25 @@ node('APIM-Python-Docker') {
     }
 
     stage('Push Release Tag') {
-        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-            sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
-            echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+        if (approvalStatus) {
+            withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
+                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+            }
+        } else {
+            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}' it's not approved."
         }
+
     }
 
     stage('Push Latest Tag') {
-        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-            sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
-            echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+        if (approvalStatus) {
+            withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
+                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+            }
+        } else {
+            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' it's not approved."
         }
     }
 
