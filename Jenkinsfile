@@ -8,6 +8,7 @@ node('APIM-Python-Docker') {
     def imageTag
     def imageRepository
     def imageName = "/apim/apim_base"
+    def approvalStatus
 
     stage('Initialize') {
         branchName = BRANCH_NAME
@@ -25,7 +26,7 @@ node('APIM-Python-Docker') {
         if (pullRequest) {
             echo "Checking out pull request '${branchName}'"
             try {
-                git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://bctk8gl01.ad01.bcthk.com/vv0053/apim-base-77.git'
+                git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://github.com/gitlabzz//apim-base-77.git'
             } catch (exception) {
                 sh '''
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
@@ -38,7 +39,7 @@ node('APIM-Python-Docker') {
 
         } else {
             echo "Checking out branch '${BRANCH_NAME}'"
-            git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://bctk8gl01.ad01.bcthk.com/vv0053/apim-base-77.git'
+            git branch: '${BRANCH_NAME}', credentialsId: 'gitlab.vv0053.userid.password', url: 'https://github.com/gitlabzz//apim-base-77.git'
             echo "Check out for '${BRANCH_NAME}' is successfully completed!"
         }
     }
@@ -82,8 +83,19 @@ node('APIM-Python-Docker') {
                 imageTag += "_RELEASE"
                 imageRepository = "_release"
             }
-            sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
+            sh script: "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}", returnStatus: true
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
+        }
+    }
+
+    stage('Approve/ Decline Image Push') {
+        if (!nonProdEnvs.contains(targetEnvironment)) {
+            def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'], description: 'Approval Status')]
+            echo "approvalStatusInput: ${approvalStatusInput}"
+            approvalStatus = approvalStatusInput.equalsIgnoreCase('Approved') ? true : false
+            echo "approvalStatus: ${approvalStatus}"
+        } else {
+            echo "Approval not required for '${nonProdEnvs}' environment, this build is for '${targetEnvironment}'"
         }
     }
 
@@ -94,16 +106,25 @@ node('APIM-Python-Docker') {
     }
 
     stage('Push Release Tag') {
-        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-            sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
-            echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+        if (approvalStatus) {
+            withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
+                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+            }
+        } else {
+            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}' it's not approved."
         }
+
     }
 
     stage('Push Latest Tag') {
-        withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-            sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
-            echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+        if (approvalStatus) {
+            withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
+                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+            }
+        } else {
+            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' it's not approved."
         }
     }
 
