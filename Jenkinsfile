@@ -76,7 +76,7 @@ node('APIM-Python-Docker') {
                 echo "Branch '${BRANCH_NAME}' is going to be treated as 'PROD' branch"
             }
 
-            if (targetEnvironment.equalsIgnoreCase('dev')) {
+            if (nonProdEnvs.contains(targetEnvironment)) {
                 imageTag += "_SNAPSHOT"
                 imageRepository = "_snapshot"
             } else {
