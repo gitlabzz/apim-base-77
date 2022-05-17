@@ -96,6 +96,7 @@ node('APIM-Python-Docker') {
             echo "approvalStatus: ${approvalStatus}"
         } else {
             echo "Approval not required for '${nonProdEnvs}' environment, this build is for '${targetEnvironment}'"
+            approvalStatus = true
         }
     }
 
