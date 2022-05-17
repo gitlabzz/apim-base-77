@@ -1,20 +1,21 @@
 node('APIM-Python-Docker') {
     def release = '7_7_20220228'
-    def nonProdEnvs = ['dev', 'sit']
+    def nonProdSITEnvs = ['dev', 'sit']
+    def nonProdUATEnvs = ['uat']
     def branchName
     def pullRequest
     def targetEnvironment
     def dateTimeSignature
     def imageTag
-    def imageRepository
-    def imageName = "/apim/apim_base"
+    def harborProjectName = "/apim"
+    def imageName = "/apim_base"
     def approvalStatus
 
     stage('Initialize') {
         branchName = BRANCH_NAME
         echo "checking if it's a pull request branch!"
         if (branchName.toUpperCase().startsWith("PR-")) {
-            echo "found pull request '${branchName}', so targetting it to the 'DEV' environment!!!"
+            echo "found pull request '${branchName}', so targetting it to the 'SIT' environment!!!"
             pullRequest = branchName.substring(branchName.lastIndexOf("-") + 1)
             echo "Pull request is   ========================================>  ${pullRequest}."
         } else {
@@ -32,7 +33,7 @@ node('APIM-Python-Docker') {
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
                     git checkout FETCH_HEAD
                 '''
-                branchName = "dev"
+                branchName = "sit"
                 echo "targeting build for pull request ${pullRequest} to '${branchName}' environment"
             }
             echo "Check out for pull request '${BRANCH_NAME}' is successfully completed!"
@@ -65,7 +66,7 @@ node('APIM-Python-Docker') {
         echo "Cleared existing and dangling images, ready for build."
     }
 
-    stage('Build API Manger Image') {
+    stage('Build APIM Base Image') {
         withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
 
             targetEnvironment = BRANCH_NAME.toLowerCase()
@@ -76,40 +77,40 @@ node('APIM-Python-Docker') {
                 echo "Branch '${BRANCH_NAME}' is going to be treated as 'PROD' branch"
             }
 
-            if (targetEnvironment.equalsIgnoreCase('dev')) {
-                imageTag += "_SNAPSHOT"
-                imageRepository = "_snapshot"
-            } else {
-                imageTag += "_RELEASE"
-                imageRepository = "_release"
+            if (nonProdSITEnvs.contains(targetEnvironment)) {
+                harborProjectName += "_sit"
+            } else if (nonProdUATEnvs.contains(targetEnvironment)) {
+                harborProjectName += "_uat"
             }
-            sh script: "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}", returnStatus: true
+
+            sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${harborProjectName} ${imageName}"
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
     }
 
     stage('Approve/ Decline Image Push') {
-        if (!nonProdEnvs.contains(targetEnvironment)) {
-            def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'], description: 'Approval Status')]
+        if (nonProdSITEnvs.contains(targetEnvironment)) {
+            echo "Approval not required for '${nonProdSITEnvs}' environment, this build is for '${targetEnvironment}'"
+            approvalStatus = true
+        } else {
+            def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'])]
             echo "approvalStatusInput: ${approvalStatusInput}"
             approvalStatus = approvalStatusInput.equalsIgnoreCase('Approved') ? true : false
             echo "approvalStatus: ${approvalStatus}"
-        } else {
-            echo "Approval not required for '${nonProdEnvs}' environment, this build is for '${targetEnvironment}'"
         }
     }
 
     stage('Create Latest Tag') {
-        sh "docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
-        echo "Executed 'docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
-        echo "Tag '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' created from '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+        sh "docker tag ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag} ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest"
+        echo "Executed 'docker tag ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag} ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest'"
+        echo "Tag '${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest' created from '${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag}'"
     }
 
     stage('Push Release Tag') {
         if (approvalStatus) {
             withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
-                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+                sh "docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag}"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag}'"
             }
         } else {
             echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}' it's not approved."
@@ -120,11 +121,11 @@ node('APIM-Python-Docker') {
     stage('Push Latest Tag') {
         if (approvalStatus) {
             withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
-                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+                sh "docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest'"
             }
         } else {
-            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' it's not approved."
+            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest' it's not approved."
         }
     }
 
@@ -132,6 +133,4 @@ node('APIM-Python-Docker') {
         sh 'docker logout'
         echo "Executed 'docker logout'"
     }
-
-
 }
