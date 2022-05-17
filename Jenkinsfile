@@ -100,17 +100,17 @@ node('APIM-Python-Docker') {
         }
     }
 
-    /*stage('Create Latest Tag') {
-        sh "docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
-        echo "Executed 'docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
-        echo "Tag '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' created from '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+    stage('Create Latest Tag') {
+        sh "docker tag ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag} ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest"
+        echo "Executed 'docker tag ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag} ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest'"
+        echo "Tag '${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest' created from '${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag}'"
     }
 
     stage('Push Release Tag') {
         if (approvalStatus) {
             withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}"
-                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
+                sh "docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag}"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:${imageTag}'"
             }
         } else {
             echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}' it's not approved."
@@ -121,18 +121,16 @@ node('APIM-Python-Docker') {
     stage('Push Latest Tag') {
         if (approvalStatus) {
             withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-                sh "docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
-                echo "Executed 'docker push ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
+                sh "docker ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest"
+                echo "Executed 'docker ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest'"
             }
         } else {
-            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' it's not approved."
+            echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest' it's not approved."
         }
     }
 
     stage('Docker Logout') {
         sh 'docker logout'
         echo "Executed 'docker logout'"
-    }*/
-
-
+    }
 }

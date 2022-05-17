@@ -4,10 +4,12 @@
 # ./build_base_image.sh 7_7_20220228_20220518_3 harbor.com /apim_uat /apim_base
 # ./build_base_image.sh 7_7_20220228_20220518_3 harbor.com /apim /apim_base
 
-#1 = release/ Image Tag = 7_7_20220228_20220518_3
-#2 = Harbor = harbor.com
-#3 = Harbor Project = /apim_sit
-#4 = Image Name = /apim_base
+#1 = release/ Image Tag = 7_7_20220228_20220518_3 = imageTag
+#2 = Harbor = harbor.com = env.HARBOR_FQDN
+#3 = Harbor Project = /apim_sit = harborProjectName
+#4 = Image Name = /apim_base = imageName
+
+
 
 echo
 echo "----------- Building Base Image For Release '$1' ----------- "
@@ -19,10 +21,10 @@ tar xf APIGateway_7.7.20220228-DockerScripts-2.4.0.tar
   --out-image=$2$3$4:$1
 
 # create latest tag
-docker tag $2$3$4:$1 $2$3$4:latest
+#docker tag $2$3$4:$1 $2$3$4:latest
 
 # push image with release tag
-docker push $2$3$4:$1
+#docker push $2$3$4:$1
 
 # push same image using 'latest' tag
-docker push $2$3$4:latest
+#docker push $2$3$4:latest
