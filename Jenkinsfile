@@ -121,8 +121,8 @@ node('APIM-Python-Docker') {
     stage('Push Latest Tag') {
         if (approvalStatus) {
             withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
-                sh "docker ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest"
-                echo "Executed 'docker ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest'"
+                sh "docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest"
+                echo "Executed 'docker push ${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest'"
             }
         } else {
             echo "Not pushing to Harbor as '${env.HARBOR_FQDN}${harborProjectName}${imageName}:latest' it's not approved."
