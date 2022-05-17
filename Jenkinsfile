@@ -6,8 +6,8 @@ node('APIM-Python-Docker') {
     def targetEnvironment
     def dateTimeSignature
     def imageTag
-    def imageRepository
-    def imageName = "/apim/apim_base"
+    def harborProjectName = "/apim"
+    def imageName = "/apim_base"
     def approvalStatus
 
     stage('Initialize') {
@@ -65,7 +65,7 @@ node('APIM-Python-Docker') {
         echo "Cleared existing and dangling images, ready for build."
     }
 
-    stage('Build API Manger Image') {
+    stage('Build APIM Base Image') {
         withDockerRegistry(credentialsId: 'harbor.vv0053.userid.password', url: "${env.HARBOR_URL}") {
 
             targetEnvironment = BRANCH_NAME.toLowerCase()
@@ -76,13 +76,14 @@ node('APIM-Python-Docker') {
                 echo "Branch '${BRANCH_NAME}' is going to be treated as 'PROD' branch"
             }
 
-            if (nonProdEnvs.contains(targetEnvironment)) {
-                imageTag += "_SNAPSHOT"
-                imageRepository = "_snapshot"
+            if (targetEnvironment.equalsIgnoreCase('sit')) {
+                harborProjectName += "_sit"
+            } else if (targetEnvironment.equalsIgnoreCase('sit')) {
+                harborProjectName += "_uat"
             } else {
-                imageTag += "_RELEASE"
-                imageRepository = "_release"
+
             }
+
             sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
@@ -90,7 +91,7 @@ node('APIM-Python-Docker') {
 
     stage('Approve/ Decline Image Push') {
         if (!nonProdEnvs.contains(targetEnvironment)) {
-            def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'], description: 'Approval Status')]
+            def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'])]
             echo "approvalStatusInput: ${approvalStatusInput}"
             approvalStatus = approvalStatusInput.equalsIgnoreCase('Approved') ? true : false
             echo "approvalStatus: ${approvalStatus}"
@@ -100,7 +101,7 @@ node('APIM-Python-Docker') {
         }
     }
 
-    stage('Create Latest Tag') {
+    /*stage('Create Latest Tag') {
         sh "docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest"
         echo "Executed 'docker tag ${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag} ${env.HARBOR_FQDN}${imageName}${imageRepository}:latest'"
         echo "Tag '${env.HARBOR_FQDN}${imageName}${imageRepository}:latest' created from '${env.HARBOR_FQDN}${imageName}${imageRepository}:${imageTag}'"
@@ -132,7 +133,7 @@ node('APIM-Python-Docker') {
     stage('Docker Logout') {
         sh 'docker logout'
         echo "Executed 'docker logout'"
-    }
+    }*/
 
 
 }
