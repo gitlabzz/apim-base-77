@@ -90,7 +90,7 @@ node('APIM-Python-Docker') {
 
     stage('Approve/ Decline Image Push') {
         if (nonProdSITEnvs.contains(targetEnvironment)) {
-            echo "Approval not required for '${nonProdEnvs}' environment, this build is for '${targetEnvironment}'"
+            echo "Approval not required for '${nonProdSITEnvs}' environment, this build is for '${targetEnvironment}'"
             approvalStatus = true
         } else {
             def approvalStatusInput = input message: 'Please approve to push image to Harbor repository', parameters: [choice(name: 'approvalStatus', choices: ['Approved', 'Declined'])]
