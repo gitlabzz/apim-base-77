@@ -84,7 +84,7 @@ node('APIM-Python-Docker') {
 
             }
 
-            sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${imageRepository} ${imageName}"
+            sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${harborProjectName} ${imageName}"
             echo "Build Completed for branch: '${BRANCH_NAME}' Image Created: ${env.HARBOR_FQDN}${imageName}${imageTag} Using Release: ${release}"
         }
     }
