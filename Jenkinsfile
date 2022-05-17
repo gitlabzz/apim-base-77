@@ -1,6 +1,7 @@
 node('APIM-Python-Docker') {
     def release = '7_7_20220228'
-    def nonProdEnvs = ['dev', 'sit']
+    def nonProdSITEnvs = ['dev', 'sit']
+    def nonProdUATEnvs = ['uat']
     def branchName
     def pullRequest
     def targetEnvironment
@@ -76,12 +77,10 @@ node('APIM-Python-Docker') {
                 echo "Branch '${BRANCH_NAME}' is going to be treated as 'PROD' branch"
             }
 
-            if (targetEnvironment.equalsIgnoreCase('sit')) {
+            if (nonProdSITEnvs.contains(targetEnvironment)) {
                 harborProjectName += "_sit"
-            } else if (targetEnvironment.equalsIgnoreCase('sit')) {
+            } else if (nonProdUATEnvs.contains(targetEnvironment)) {
                 harborProjectName += "_uat"
-            } else {
-
             }
 
             sh "./build_base_image.sh ${imageTag} ${env.HARBOR_FQDN} ${harborProjectName} ${imageName}"
