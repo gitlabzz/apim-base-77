@@ -15,7 +15,7 @@ node('APIM-Python-Docker') {
         branchName = BRANCH_NAME
         echo "checking if it's a pull request branch!"
         if (branchName.toUpperCase().startsWith("PR-")) {
-            echo "found pull request '${branchName}', so targetting it to the 'DEV' environment!!!"
+            echo "found pull request '${branchName}', so targetting it to the 'SIT' environment!!!"
             pullRequest = branchName.substring(branchName.lastIndexOf("-") + 1)
             echo "Pull request is   ========================================>  ${pullRequest}."
         } else {
@@ -33,7 +33,7 @@ node('APIM-Python-Docker') {
                     git fetch origin +refs/pull/''' + pullRequest + '''/merge
                     git checkout FETCH_HEAD
                 '''
-                branchName = "dev"
+                branchName = "sit"
                 echo "targeting build for pull request ${pullRequest} to '${branchName}' environment"
             }
             echo "Check out for pull request '${BRANCH_NAME}' is successfully completed!"
