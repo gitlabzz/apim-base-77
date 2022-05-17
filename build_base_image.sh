@@ -1,4 +1,7 @@
 #! /bin/bash
+
+# ./build_base_image.sh 7_7_20220228 harbor.com _release /apim/apim_base
+
 echo
 echo "----------- Building Base Image For Release '$1' ----------- "
 tar xf APIGateway_7.7.20220228-DockerScripts-2.4.0.tar
